@@ -1,8 +1,15 @@
+import os
 from flask import Flask, render_template, request, jsonify
 import requests
 import json
 
 app = Flask(__name__)
+
+# Get the API key from environment variable
+ANYTHINGLLM_API_KEY = os.getenv('ANYTHINGLLM_API_KEY')
+
+if not ANYTHINGLLM_API_KEY:
+    raise ValueError("API key not found. Please set the 'ANYTHINGLLM_API_KEY' environment variable.")
 
 # Route to serve the chatbot UI
 @app.route('/')
@@ -24,7 +31,7 @@ def chatbot(API_KEY):
     }
     headers = {
     'Content-Type': 'application/json',
-    'Authorization': f"'Bearer {API_KEY}'"
+    'Authorization': f'Bearer {ANYTHINGLLM_API_KEY}'
     }
     
     # Forward the question to AnythingLLM
