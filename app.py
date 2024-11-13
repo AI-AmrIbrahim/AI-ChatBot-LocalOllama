@@ -11,7 +11,7 @@ def index():
 
 # API route to handle user questions
 @app.route('/api/chatbot', methods=['POST'])
-def chatbot():
+def chatbot(API_KEY):
     user_question = request.json.get('question')  # Get the user's question from the request
 
     # Define the AnythingLLM endpoint
@@ -24,7 +24,7 @@ def chatbot():
     }
     headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer X7CK00F-K764AVE-KBSF5Q7-ET2JKRH'
+    'Authorization': f"'Bearer {API_KEY}'"
     }
     
     # Forward the question to AnythingLLM
