@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS Keyword Extractor Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Markdown parsing library -->
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>ATS Keyword Extractor</h2>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-container">
+      <form id="chatForm">
+        <!-- Replace input with a textarea -->
+        <textarea id="questionInput" placeholder="Enter job description..." rows="2" autocomplete="off"></textarea>
+        <button type="submit" id="sendButton">Send</button>
+      </form>
+      <!-- Loading spinner, hidden initially -->
+      <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('chatForm').addEventListener('submit', function(event) {
+      event.preventDefault();  // Prevent form from refreshing the page
+      const userMessage = document.getElementById('questionInput').value.trim();
+
+      if (!userMessage) return;
+
+      // Display user message in the chat
+      displayMessage('You', userMessage);
+
+      // Clear the input field
+      document.getElementById('questionInput').value = '';
+
+      // Disable input and button, show loading spinner
+      document.getElementById('questionInput').disabled = true;
+      document.getElementById('sendButton').disabled = true;
+      document.getElementById('loadingSpinner').style.display = 'block';
+
+      // Send the user message to the Flask API
+      fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: userMessage })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading spinner, enable input and button
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('questionInput').disabled = false;
+        document.getElementById('sendButton').disabled = false;
+
+        // Parse Markdown to HTML using marked.js and display
+        const markdownResponse = marked.parse(data.response);
+        displayMessage('Chatbot', markdownResponse, true);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+
+        // Hide loading spinner, enable input and button, show error message
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('questionInput').disabled = false;
+        document.getElementById('sendButton').disabled = false;
+
+        displayMessage('Chatbot', 'Error: Unable to retrieve response.');
+      });
+    });
+
+    function displayMessage(sender, text, isHTML = false) {
+      const chatMessages = document.getElementById('chatMessages');
+      
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message', sender === 'You' ? 'user' : 'bot');
+
+      const messageContent = document.createElement('div');
+      messageContent.classList.add('message-content');
+      
+      // Render as HTML if it’s Markdown content
+      if (isHTML) {
+        messageContent.innerHTML = text;  // Use innerHTML for parsed HTML
+      } else {
+        messageContent.textContent = text;
+      }
+      
+      messageElement.appendChild(messageContent);
+      chatMessages.appendChild(messageElement);
+
+      // Scroll to the latest message
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
+</body>
+</html>
